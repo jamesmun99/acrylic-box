@@ -412,7 +412,6 @@
         <div class="part-box">
             <div class="part-header">
                 <span>바닥면</span>
-                <span class="part-sub">가로 × 세로</span>
             </div>
             <div class="option-row">
                 <span class="mini-lab">재질 선택</span>
@@ -436,7 +435,6 @@
         <div class="part-box">
             <div class="part-header">
                 <span>둘레 (옆면 4면)</span>
-                <span class="part-sub">(가로+세로) × 2 × 높이</span>
             </div>
             <div class="option-row">
                 <span class="mini-lab">재질 선택</span>
@@ -460,7 +458,7 @@
         <div class="part-box" id="lidPartBox">
             <div class="part-header">
                 <span>상단 뚜껑 (상판)</span>
-                <span class="part-sub" id="lidStatusText">가로 × 세로</span>
+                <span class="part-sub" id="lidStatusText"></span>
             </div>
             <div class="option-row">
                 <span class="mini-lab">재질 선택</span>
@@ -526,7 +524,7 @@
 
         <!-- 조립품 사이즈 오차 안내문 -->
         <div class="notice-box">
-            ※ 안내: 본 제품은 판재를 재단하여 접합하는 <strong>조립품</strong>이므로, 실제 제작 사이즈는 입력하신 치수보다 <strong>1~2mm 정도 차이</strong>가 날 수 있습니다.
+            ※ 안내: 본 제품은 판재를 재단하여 조립하는 상품으로, 실제 조립 후 완성 사이즈는 입력하신 치수보다 <strong>1~2mm 정도 차이</strong>가 날 수 있습니다.
         </div>
     </div>
 
@@ -732,7 +730,7 @@
 
                 if (hasLid) {
                     lidBox.classList.remove('disabled');
-                    statusText.innerText = '가로 × 세로';
+                    statusText.innerText = '';
                 } else {
                     lidBox.classList.add('disabled');
                     statusText.innerText = '뚜껑 없음 (미포함)';
