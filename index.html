@@ -130,8 +130,8 @@
 
         .part-sub {
             font-size: 12px;
-            font-weight: 500;
-            color: var(--ink-2);
+            font-weight: 600;
+            color: var(--edge-dark);
         }
 
         .option-row {
@@ -195,18 +195,55 @@
         .dot-black { background: #181818; border-color: #181818; }
         .dot-white { background: #FFFFFF; }
 
-        /* 사이즈 입력 영역 */
-        .size-grid {
+        /* 정면 / 측면 사이즈 입력 영역 */
+        .face-group {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            align-items: start;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
 
-        @media (max-width: 540px) {
-            .size-grid {
+        @media (max-width: 560px) {
+            .face-group {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .face-box {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 13px;
+            background: var(--field);
+        }
+
+        .face-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 7px;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .face-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--ink);
+        }
+
+        .face-badge {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--edge-dark);
+            background: var(--edge-soft);
+            padding: 2px 7px;
+            border-radius: 5px;
+        }
+
+        .face-fields {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            align-items: start;
         }
 
         .input-group {
@@ -219,10 +256,10 @@
 
         label.field-lab {
             display: block;
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 700;
             color: var(--ink-2);
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         input[type="number"] {
@@ -233,7 +270,7 @@
             background: #fff;
             border: 1.5px solid var(--line);
             border-radius: 9px;
-            padding: 11px 12px;
+            padding: 10px 11px;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -251,7 +288,7 @@
 
         input::placeholder {
             color: #BDBDBD;
-            font-size: 13px;
+            font-size: 12.5px;
         }
 
         /* 경고 문구 스타일 */
@@ -261,10 +298,10 @@
             background-color: var(--warn-soft);
             border: 1px solid #F5B7B1;
             border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 11.5px;
-            line-height: 1.4;
-            margin-top: 6px;
+            padding: 5px 7px;
+            font-size: 11px;
+            line-height: 1.35;
+            margin-top: 5px;
             font-weight: 700;
             word-break: keep-all;
         }
@@ -346,7 +383,7 @@
         .spec-summary {
             margin-top: 12px;
             padding: 10px 12px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
             font-size: 12.5px;
             color: #444;
@@ -387,6 +424,19 @@
         .copy-btn:active {
             background-color: var(--edge-dark);
         }
+
+        .copy-notice {
+            display: none;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--warn);
+            text-align: right;
+        }
+
+        .copy-notice.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -400,10 +450,10 @@
             <span class="lab">상단 뚜껑 필요 여부</span>
             <div class="radio-group">
                 <label class="radio-label">
-                    <input type="radio" name="hasLid" value="yes" checked> 상단 뚜껑 있음 (6면)
+                    <input type="radio" name="hasLid" value="yes" checked> 상단 막힘 (6면)
                 </label>
                 <label class="radio-label">
-                    <input type="radio" name="hasLid" value="no"> 상단 뚜껑 없음 (5면)
+                    <input type="radio" name="hasLid" value="no"> 상단 열림 (5면)
                 </label>
             </div>
         </div>
@@ -479,27 +529,49 @@
         </div>
     </div>
 
-    <!-- 2. 사이즈 및 두께 입력 -->
+    <!-- 2. 박스 전체 사이즈 및 두께 입력 (정면 / 측면 분리) -->
     <div class="card">
         <div class="card-title">2. 박스 전체 사이즈 및 두께 입력</div>
 
-        <div class="size-grid">
-            <div class="input-group">
-                <label class="field-lab" for="width">가로 (mm)</label>
-                <input type="number" id="width" placeholder="60 ~ 1000">
-                <div class="error-msg" id="widthError">⚠️ 60~1,000mm 사이로 입력해 주세요.</div>
+        <div class="face-group">
+            <!-- 정면 입력 (가로 × 세로(높이)) -->
+            <div class="face-box">
+                <div class="face-header">
+                    <span class="face-title">정면 사이즈</span>
+                    <span class="face-badge">가로 × 세로(높이)</span>
+                </div>
+                <div class="face-fields">
+                    <div>
+                        <label class="field-lab" for="width">가로 (mm)</label>
+                        <input type="number" id="width" placeholder="60 ~ 1000">
+                        <div class="error-msg" id="widthError">⚠️ 60~1,000mm 입력</div>
+                    </div>
+                    <div>
+                        <label class="field-lab" for="heightFront">세로(높이) (mm)</label>
+                        <input type="number" id="heightFront" placeholder="60 ~ 1000">
+                        <div class="error-msg" id="heightFrontError">⚠️ 60~1,000mm 입력</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="input-group">
-                <label class="field-lab" for="depth">세로 (mm)</label>
-                <input type="number" id="depth" placeholder="60 ~ 1000">
-                <div class="error-msg" id="depthError">⚠️ 60~1,000mm 사이로 입력해 주세요.</div>
-            </div>
-
-            <div class="input-group">
-                <label class="field-lab" for="height">높이 (mm)</label>
-                <input type="number" id="height" placeholder="60 ~ 1000">
-                <div class="error-msg" id="heightError">⚠️ 60~1,000mm 사이로 입력해 주세요.</div>
+            <!-- 측면 입력 (가로 × 세로(높이)) -->
+            <div class="face-box">
+                <div class="face-header">
+                    <span class="face-title">측면 사이즈</span>
+                    <span class="face-badge">가로 × 세로(높이)</span>
+                </div>
+                <div class="face-fields">
+                    <div>
+                        <label class="field-lab" for="depth">가로 (mm)</label>
+                        <input type="number" id="depth" placeholder="60 ~ 1000">
+                        <div class="error-msg" id="depthError">⚠️ 60~1,000mm 입력</div>
+                    </div>
+                    <div>
+                        <label class="field-lab" for="heightSide">세로(높이) (mm)</label>
+                        <input type="number" id="heightSide" placeholder="60 ~ 1000">
+                        <div class="error-msg" id="heightSideError">⚠️ 60~1,000mm 입력</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -522,7 +594,7 @@
             <input type="number" id="quantity" value="1" min="1" placeholder="수량 입력">
         </div>
 
-        <!-- 조립품 사이즈 오차 안내문 -->
+        <!-- 조립품 공차 안내문 -->
         <div class="notice-box">
             ※ 안내: 본 제품은 판재를 재단하여 조립하는 상품으로, 실제 조립 후 완성 사이즈는 입력하신 치수보다 <strong>1~2mm 정도 차이</strong>가 날 수 있습니다.
         </div>
@@ -535,18 +607,32 @@
         <div class="unit-price" id="unitPriceText">개당 단가: 0원</div>
         
         <div class="spec-summary" id="specSummary">
-            가로 · 세로 · 높이를 입력하시면 상세 사양 및 견적이 계산됩니다.
+            정면(가로·세로(높이))과 측면(가로·세로(높이)) 치수를 입력하시면 상세 사양 및 견적이 계산됩니다.
         </div>
 
         <div class="order-guide-wrap">
             <div class="order-guide" id="orderGuideText">네이버 주문 수량: 0개 지정</div>
             <button type="button" class="copy-btn" id="copyBtn">수량 복사하기</button>
         </div>
+        <div class="copy-notice" id="copyNotice"></div>
     </div>
 </div>
 
 <script>
     let currentOrderCount = 0;
+
+    // 화면 내 인라인 안내 메시지 표시 함수 (alert 대체)
+    function showCopyNotice(message, isError = true) {
+        const noticeEl = document.getElementById('copyNotice');
+        noticeEl.innerText = message;
+        noticeEl.style.color = isError ? 'var(--warn)' : 'var(--edge-dark)';
+        noticeEl.classList.add('visible');
+
+        clearTimeout(noticeEl._timer);
+        noticeEl._timer = setTimeout(() => {
+            noticeEl.classList.remove('visible');
+        }, 2500);
+    }
 
     // 치수 검증 함수: 입력값을 절대 덮어쓰지 않고 유지하며 경고 문구만 토글
     function checkDimension(inputId, errorId) {
@@ -600,12 +686,13 @@
     function calculate() {
         const isWidthOk = checkDimension('width', 'widthError');
         const isDepthOk = checkDimension('depth', 'depthError');
-        const isHeightOk = checkDimension('height', 'heightError');
+        const isHeightFrontOk = checkDimension('heightFront', 'heightFrontError');
+        const isHeightSideOk = checkDimension('heightSide', 'heightSideError');
         const isThickOk = checkThickness();
 
         const width = Number(document.getElementById('width').value) || 0;
         const depth = Number(document.getElementById('depth').value) || 0;
-        const height = Number(document.getElementById('height').value) || 0;
+        const height = Number(document.getElementById('heightFront').value) || 0;
         const thickness = Number(document.getElementById('thickness').value) || 0;
 
         let quantity = parseInt(document.getElementById('quantity').value, 10);
@@ -627,7 +714,7 @@
         const topCol = document.querySelector('input[name="col_top"]:checked').value;
 
         // 하나라도 비어있거나 범위를 벗어나면 0원 표시
-        if (!isWidthOk || !isDepthOk || !isHeightOk || !isThickOk) {
+        if (!isWidthOk || !isDepthOk || !isHeightFrontOk || !isHeightSideOk || !isThickOk) {
             document.getElementById('result').innerText = '0';
             document.getElementById('unitPriceText').innerText = '개당 단가: 0원';
             document.getElementById('orderGuideText').innerText = '네이버 주문 수량: 0개 지정';
@@ -636,7 +723,7 @@
             if (width > 0 || depth > 0 || height > 0) {
                 document.getElementById('specSummary').innerText = '입력 범위를 벗어난 치수(60~1,000mm) 또는 두께(최대 10mm)를 확인해 주세요.';
             } else {
-                document.getElementById('specSummary').innerText = '가로 · 세로 · 높이를 입력하시면 상세 사양 및 견적이 계산됩니다.';
+                document.getElementById('specSummary').innerText = '정면(가로·세로(높이))과 측면(가로·세로(높이)) 치수를 입력하시면 상세 사양 및 견적이 계산됩니다.';
             }
             return;
         }
@@ -669,15 +756,19 @@
             ? `상판(${topMatEl.dataset.name}/${topCol})`
             : `상판(없음)`;
         document.getElementById('specSummary').innerHTML =
-            `<strong>선택 사양:</strong> ${width}×${depth}×${height}mm (${thickness}t) / ${hasLid ? '뚜껑 포함' : '뚜껑 없음'}<br>` +
+            `<strong>선택 사양:</strong> 가로 ${width} × 세로 ${depth} × 높이 ${height}mm (${thickness}t) / ${hasLid ? '상단 막힘(6면)' : '상단 열림(5면)'}<br>` +
             `바닥(${bottomMatEl.dataset.name}/${bottomCol}) · 둘레(${sideMatEl.dataset.name}/${sideCol}) · ${topDesc}`;
     }
 
     // 이벤트 연결
     document.addEventListener('DOMContentLoaded', () => {
-        // 치수 입력칸 이벤트
-        ['width', 'depth', 'height'].forEach(id => {
-            const el = document.getElementById(id);
+        const widthEl = document.getElementById('width');
+        const depthEl = document.getElementById('depth');
+        const heightFrontEl = document.getElementById('heightFront');
+        const heightSideEl = document.getElementById('heightSide');
+
+        // 정면 가로 / 측면 가로 입력 이벤트
+        [widthEl, depthEl].forEach(el => {
             el.addEventListener('input', calculate);
             el.addEventListener('blur', calculate);
             el.addEventListener('keydown', e => {
@@ -686,6 +777,37 @@
                     el.blur();
                 }
             });
+        });
+
+        // 정면 세로(높이) <-> 측면 세로(높이) 실시간 동기화
+        heightFrontEl.addEventListener('input', () => {
+            heightSideEl.value = heightFrontEl.value;
+            calculate();
+        });
+        heightFrontEl.addEventListener('blur', () => {
+            heightSideEl.value = heightFrontEl.value;
+            calculate();
+        });
+        heightFrontEl.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                heightFrontEl.blur();
+            }
+        });
+
+        heightSideEl.addEventListener('input', () => {
+            heightFrontEl.value = heightSideEl.value;
+            calculate();
+        });
+        heightSideEl.addEventListener('blur', () => {
+            heightFrontEl.value = heightSideEl.value;
+            calculate();
+        });
+        heightSideEl.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                heightSideEl.blur();
+            }
         });
 
         // 두께 입력칸 이벤트
@@ -733,7 +855,7 @@
                     statusText.innerText = '';
                 } else {
                     lidBox.classList.add('disabled');
-                    statusText.innerText = '뚜껑 없음 (미포함)';
+                    statusText.innerText = '상단 열림 (미포함)';
                 }
                 calculate();
             });
@@ -749,11 +871,13 @@
         // 수량 복사 버튼
         document.getElementById('copyBtn').addEventListener('click', () => {
             if (currentOrderCount <= 0) {
-                alert('먼저 올바른 치수(60~1,000mm)와 두께를 입력해 주세요!');
+                const guideEl = document.getElementById('orderGuideText');
+                guideEl.innerText = '⚠️ 먼저 올바른 치수(60~1,000mm)와 두께를 입력해 주세요!';
                 return;
             }
 
-            navigator.clipboard.writeText(currentOrderCount.toString()).then(() => {
+            const textToCopy = currentOrderCount.toString();
+            const showCopiedFeedback = () => {
                 const btn = document.getElementById('copyBtn');
                 btn.innerText = '복사완료! ✓';
                 btn.style.backgroundColor = '#111111';
@@ -762,9 +886,22 @@
                     btn.innerText = '수량 복사하기';
                     btn.style.backgroundColor = '#F2571B';
                 }, 2000);
-            }).catch(() => {
-                alert('복사에 실패했습니다. 수량을 직접 입력해 주세요.');
-            });
+            };
+
+            try {
+                const tempTextarea = document.createElement('textarea');
+                tempTextarea.value = textToCopy;
+                tempTextarea.setAttribute('readonly', '');
+                tempTextarea.style.position = 'absolute';
+                tempTextarea.style.left = '-9999px';
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextarea);
+                showCopiedFeedback();
+            } catch (err) {
+                document.getElementById('orderGuideText').innerText = `네이버 주문 수량: ${currentOrderCount.toLocaleString()}개 (직접 입력해 주세요)`;
+            }
         });
     });
 </script>
