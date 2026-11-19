@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>맞춤 박스 제작 단가 계산기</title>
+    <style>
+        :root {
+            --paper: #FFFFFF;
+            --card: #FFFFFF;
+            --field: #FAFAFA;
+            --ink: #111111;
+            --ink-2: #6E6E6E;
+            --line: #E4E4E4;
+            --edge: #F2571B;       /* 주황 포인트 */
+            --edge-soft: #FFF2EC;
+            --edge-dark: #B33C0D;
+            --warn: #C0392B;
+            --warn-soft: #FDECEA;
+            --r: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: var(--paper);
+            color: var(--ink);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .wrap {
+            max-width: 730px;
+            margin: 0 auto;
+            padding: 18px 14px 60px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r);
+            padding: 18px 16px;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 14px;
+        }
+
+        .lab {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-2);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .radio-label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 8px;
+            border: 1.5px solid var(--line);
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-2);
+            background-color: #fff;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .radio-label input {
+            margin-right: 6px;
+            accent-color: var(--edge);
+        }
+
+        .radio-label:has(input:checked) {
+            border-color: var(--edge);
+            background-color: var(--edge-soft);
+            color: var(--edge-dark);
+        }
+
+        /* 부위별 재질/색상 블록 */
+        .part-box {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: var(--field);
+            transition: opacity 0.2s;
+        }
+
+        .part-box:last-child {
+            margin-bottom: 0;
+        }
+
+        .part-box.disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .part-header {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .part-sub {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ink-2);
+        }
+
+        .option-row {
+            margin-bottom: 10px;
+        }
+
+        .option-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .mini-lab {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-2);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .chip-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .chip-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 9px 6px;
+            border: 1.5px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-2);
+            background-color: #fff;
+            transition: all 0.15s;
+        }
+
+        .chip-label input {
+            display: none;
+        }
+
+        .chip-label:has(input:checked) {
+            border-color: var(--edge);
+            background-color: var(--edge-soft);
+            color: var(--edge-dark);
+            font-weight: 700;
+        }
+
+        .color-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid #CCCCCC;
+        }
+
+        .dot-clear { background: linear-gradient(135deg, #ffffff 45%, #d9eefc 100%); }
+        .dot-black { background: #181818; border-color: #181818; }
+        .dot-white { background: #FFFFFF; }
+
+        /* 사이즈 입력 영역 */
+        .size-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            align-items: start;
+        }
+
+        @media (max-width: 540px) {
+            .size-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label.field-lab {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-2);
+            margin-bottom: 6px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            font: inherit;
+            font-size: 15px;
+            color: var(--ink);
+            background: #fff;
+            border: 1.5px solid var(--line);
+            border-radius: 9px;
+            padding: 11px 12px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--edge);
+            box-shadow: 0 0 0 3px var(--edge-soft);
+        }
+
+        input[type="number"].input-invalid {
+            border-color: var(--warn) !important;
+            background-color: #FFFBFB;
+            box-shadow: 0 0 0 3px var(--warn-soft) !important;
+        }
+
+        input::placeholder {
+            color: #BDBDBD;
+            font-size: 13px;
+        }
+
+        /* 경고 문구 스타일 */
+        .error-msg {
+            display: none;
+            color: var(--warn);
+            background-color: var(--warn-soft);
+            border: 1px solid #F5B7B1;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 11.5px;
+            line-height: 1.4;
+            margin-top: 6px;
+            font-weight: 700;
+            word-break: keep-all;
+        }
+
+        .error-msg.visible {
+            display: block !important;
+        }
+
+        /* 두께 선택 버튼 그룹 */
+        .thickness-presets {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .t-btn {
+            padding: 10px 6px;
+            border: 1.5px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-2);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .t-btn.active {
+            border-color: var(--edge);
+            background: var(--edge-soft);
+            color: var(--edge-dark);
+            font-weight: 700;
+        }
+
+        /* 조립품 공차 안내 문구 */
+        .notice-box {
+            margin-top: 14px;
+            padding: 11px 13px;
+            background-color: #F7F7F8;
+            border-left: 3px solid var(--edge);
+            border-radius: 6px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: #444444;
+            font-weight: 600;
+        }
+
+        /* 견적 결과 영역 */
+        .result-box {
+            background-color: var(--edge-soft);
+            border: 1.5px solid var(--edge);
+            border-radius: var(--r);
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: var(--edge-dark);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--edge-dark);
+            letter-spacing: -.02em;
+        }
+
+        .unit-price {
+            font-size: 14px;
+            color: var(--ink-2);
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        .spec-summary {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: #444;
+            line-height: 1.55;
+            text-align: left;
+        }
+
+        .order-guide-wrap {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed #f2b8a0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .order-guide {
+            font-size: 14px;
+            color: var(--edge-dark);
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .copy-btn {
+            background-color: var(--edge);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:active {
+            background-color: var(--edge-dark);
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+    <!-- 1. 박스 구성 및 재질 · 색상 선택 -->
+    <div class="card">
+        <div class="card-title">1. 박스 구성 및 재질 · 색상 선택</div>
+
+        <div class="input-group">
+            <span class="lab">상단 뚜껑 필요 여부</span>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="hasLid" value="yes" checked> 상단 뚜껑 있음 (6면)
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="hasLid" value="no"> 상단 뚜껑 없음 (5면)
+                </label>
+            </div>
+        </div>
+
+        <!-- 바닥면 -->
+        <div class="part-box">
+            <div class="part-header">
+                <span>바닥면</span>
+                <span class="part-sub">가로 × 세로</span>
+            </div>
+            <div class="option-row">
+                <span class="mini-lab">재질 선택</span>
+                <div class="chip-group">
+                    <label class="chip-label"><input type="radio" name="mat_bottom" value="15000" data-name="아크릴" checked> 아크릴</label>
+                    <label class="chip-label"><input type="radio" name="mat_bottom" value="20000" data-name="PC"> PC</label>
+                    <label class="chip-label"><input type="radio" name="mat_bottom" value="12000" data-name="포맥스"> 포맥스</label>
+                </div>
+            </div>
+            <div class="option-row">
+                <span class="mini-lab">색상 선택</span>
+                <div class="chip-group">
+                    <label class="chip-label"><input type="radio" name="col_bottom" value="투명" checked><span class="color-dot dot-clear"></span> 투명</label>
+                    <label class="chip-label"><input type="radio" name="col_bottom" value="검정"><span class="color-dot dot-black"></span> 검정</label>
+                    <label class="chip-label"><input type="radio" name="col_bottom" value="흰색"><span class="color-dot dot-white"></span> 흰색</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 둘레 (옆면 4면) -->
+        <div class="part-box">
+            <div class="part-header">
+                <span>둘레 (옆면 4면)</span>
+                <span class="part-sub">(가로+세로) × 2 × 높이</span>
+            </div>
+            <div class="option-row">
+                <span class="mini-lab">재질 선택</span>
+                <div class="chip-group">
+                    <label class="chip-label"><input type="radio" name="mat_side" value="15000" data-name="아크릴" checked> 아크릴</label>
+                    <label class="chip-label"><input type="radio" name="mat_side" value="20000" data-name="PC"> PC</label>
+                    <label class="chip-label"><input type="radio" name="mat_side" value="12000" data-name="포맥스"> 포맥스</label>
+                </div>
+            </div>
+            <div class="option-row">
+                <span class="mini-lab">색상 선택</span>
+                <div class="chip-group">
+                    <label class="chip-label"><input type="radio" name="col_side" value="투명" checked><span class="color-dot dot-clear"></span> 투명</label>
+                    <label class="chip-label"><input type="radio" name="col_side" value="검정"><span class="color-dot dot-black"></span> 검정</label>
+                    <label class="chip-label"><input type="radio" name="col_side" value="흰색"><span class="color-dot dot-white"></span> 흰색</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 상단 뚜껑 -->
+        <div class="part-box" id="lidPartBox">
+            <div class="part-header">
+                <span>상단 뚜껑 (상판)</span>
+                <span class="part-sub" id="lidStatusText">가로 × 세로</span>
+            </div>
+            <div class="option-row">
+                <span class="mini-lab">재질 선택</span>
+                <div class="chip-group">
+                    <label class="chip-label"><input type="radio" name="mat_top" value="15000" data-name="아크릴" checked> 아크릴</label>
+                    <label class="chip-label"><input type="radio" name="mat_top" value="20000" data-name="PC"> PC</label>
+                    <label class="chip-label"><input type="radio" name="mat_top" value="12000" data-name="포맥스"> 포맥스</label>
+                </div>
+            </div>
+            <div class="option-row">
+                <span class="mini-lab">색상 선택</span>
+                <div class="chip-group">
+                    <label class="chip-label"><input type="radio" name="col_top" value="투명" checked><span class="color-dot dot-clear"></span> 투명</label>
+                    <label class="chip-label"><input type="radio" name="col_top" value="검정"><span class="color-dot dot-black"></span> 검정</label>
+                    <label class="chip-label"><input type="radio" name="col_top" value="흰색"><span class="color-dot dot-white"></span> 흰색</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 사이즈 및 두께 입력 -->
+    <div class="card">
+        <div class="card-title">2. 박스 전체 사이즈 및 두께 입력</div>
+
+        <div class="size-grid">
+            <div class="input-group">
+                <label class="field-lab" for="width">가로 (mm)</label>
+                <input type="number" id="width" placeholder="60 ~ 1000">
+                <div class="error-msg" id="widthError">⚠️ 60~1,000mm 사이로 입력해 주세요.</div>
+            </div>
+
+            <div class="input-group">
+                <label class="field-lab" for="depth">세로 (mm)</label>
+                <input type="number" id="depth" placeholder="60 ~ 1000">
+                <div class="error-msg" id="depthError">⚠️ 60~1,000mm 사이로 입력해 주세요.</div>
+            </div>
+
+            <div class="input-group">
+                <label class="field-lab" for="height">높이 (mm)</label>
+                <input type="number" id="height" placeholder="60 ~ 1000">
+                <div class="error-msg" id="heightError">⚠️ 60~1,000mm 사이로 입력해 주세요.</div>
+            </div>
+        </div>
+
+        <!-- 두께 선택 -->
+        <div class="input-group" style="margin-top: 16px;">
+            <label class="field-lab">두께 선택 (mm) - 최대 10mm</label>
+            <div class="thickness-presets">
+                <button type="button" class="t-btn active" data-t="3">3t (3mm)</button>
+                <button type="button" class="t-btn" data-t="4">4t (4mm)</button>
+                <button type="button" class="t-btn" data-t="5">5t (5mm)</button>
+                <button type="button" class="t-btn" id="customThicknessBtn">자유 입력</button>
+            </div>
+            <input type="number" id="thickness" value="3" placeholder="두께 입력 (1 ~ 10mm)" readonly>
+            <div class="error-msg" id="thicknessError">⚠️ 두께는 1mm 이상 10mm 이하만 입력 가능합니다.</div>
+        </div>
+
+        <!-- 수량 입력 -->
+        <div class="input-group" style="margin-top: 16px;">
+            <label class="field-lab" for="quantity">제작 수량 (개)</label>
+            <input type="number" id="quantity" value="1" min="1" placeholder="수량 입력">
+        </div>
+
+        <!-- 조립품 사이즈 오차 안내문 -->
+        <div class="notice-box">
+            ※ 안내: 본 제품은 판재를 재단하여 접합하는 <strong>조립품</strong>이므로, 실제 제작 사이즈는 입력하신 치수보다 <strong>1~2mm 정도 차이</strong>가 날 수 있습니다.
+        </div>
+    </div>
+
+    <!-- 3. 견적 결과 및 네이버 수량 안내 -->
+    <div class="card result-box">
+        <div class="result-label">총 견적 금액</div>
+        <div class="result-value"><span id="result">0</span> 원</div>
+        <div class="unit-price" id="unitPriceText">개당 단가: 0원</div>
+        
+        <div class="spec-summary" id="specSummary">
+            가로 · 세로 · 높이를 입력하시면 상세 사양 및 견적이 계산됩니다.
+        </div>
+
+        <div class="order-guide-wrap">
+            <div class="order-guide" id="orderGuideText">네이버 주문 수량: 0개 지정</div>
+            <button type="button" class="copy-btn" id="copyBtn">수량 복사하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentOrderCount = 0;
+
+    // 치수 검증 함수: 입력값을 절대 덮어쓰지 않고 유지하며 경고 문구만 토글
+    function checkDimension(inputId, errorId) {
+        const inputEl = document.getElementById(inputId);
+        const errorEl = document.getElementById(errorId);
+        const rawVal = inputEl.value.trim();
+
+        if (rawVal === '') {
+            inputEl.classList.remove('input-invalid');
+            errorEl.classList.remove('visible');
+            return false;
+        }
+
+        const num = Number(rawVal);
+        if (isNaN(num) || num < 60 || num > 1000) {
+            inputEl.classList.add('input-invalid');
+            errorEl.classList.add('visible');
+            return false;
+        }
+
+        inputEl.classList.remove('input-invalid');
+        errorEl.classList.remove('visible');
+        return true;
+    }
+
+    // 두께 검증 함수: 입력값을 유지하며 1~10mm 초과/미만 시 경고 노출
+    function checkThickness() {
+        const inputEl = document.getElementById('thickness');
+        const errorEl = document.getElementById('thicknessError');
+        const rawVal = inputEl.value.trim();
+
+        if (rawVal === '') {
+            inputEl.classList.remove('input-invalid');
+            errorEl.classList.remove('visible');
+            return false;
+        }
+
+        const num = Number(rawVal);
+        if (isNaN(num) || num <= 0 || num > 10) {
+            inputEl.classList.add('input-invalid');
+            errorEl.classList.add('visible');
+            return false;
+        }
+
+        inputEl.classList.remove('input-invalid');
+        errorEl.classList.remove('visible');
+        return true;
+    }
+
+    // 전체 계산 실행
+    function calculate() {
+        const isWidthOk = checkDimension('width', 'widthError');
+        const isDepthOk = checkDimension('depth', 'depthError');
+        const isHeightOk = checkDimension('height', 'heightError');
+        const isThickOk = checkThickness();
+
+        const width = Number(document.getElementById('width').value) || 0;
+        const depth = Number(document.getElementById('depth').value) || 0;
+        const height = Number(document.getElementById('height').value) || 0;
+        const thickness = Number(document.getElementById('thickness').value) || 0;
+
+        let quantity = parseInt(document.getElementById('quantity').value, 10);
+        if (isNaN(quantity) || quantity < 1) {
+            quantity = 1;
+        }
+
+        const hasLid = document.querySelector('input[name="hasLid"]:checked').value === 'yes';
+        const bottomMatEl = document.querySelector('input[name="mat_bottom"]:checked');
+        const sideMatEl = document.querySelector('input[name="mat_side"]:checked');
+        const topMatEl = document.querySelector('input[name="mat_top"]:checked');
+
+        const bottomRate = Number(bottomMatEl.value);
+        const sideRate = Number(sideMatEl.value);
+        const topRate = Number(topMatEl.value);
+
+        const bottomCol = document.querySelector('input[name="col_bottom"]:checked').value;
+        const sideCol = document.querySelector('input[name="col_side"]:checked').value;
+        const topCol = document.querySelector('input[name="col_top"]:checked').value;
+
+        // 하나라도 비어있거나 범위를 벗어나면 0원 표시
+        if (!isWidthOk || !isDepthOk || !isHeightOk || !isThickOk) {
+            document.getElementById('result').innerText = '0';
+            document.getElementById('unitPriceText').innerText = '개당 단가: 0원';
+            document.getElementById('orderGuideText').innerText = '네이버 주문 수량: 0개 지정';
+            currentOrderCount = 0;
+
+            if (width > 0 || depth > 0 || height > 0) {
+                document.getElementById('specSummary').innerText = '입력 범위를 벗어난 치수(60~1,000mm) 또는 두께(최대 10mm)를 확인해 주세요.';
+            } else {
+                document.getElementById('specSummary').innerText = '가로 · 세로 · 높이를 입력하시면 상세 사양 및 견적이 계산됩니다.';
+            }
+            return;
+        }
+
+        // 면적 계산 (mm^2)
+        const areaBottom = width * depth;                 // 바닥면
+        const areaSide = 2 * (width + depth) * height;    // 둘레 (4면)
+        const areaTop = hasLid ? (width * depth) : 0;     // 상단 뚜껑
+
+        // 기존 단가 계산 로직 반영
+        const materialCost = (
+            (areaBottom * bottomRate) +
+            (areaSide * sideRate) +
+            (areaTop * topRate)
+        ) * thickness * 1.19 / 1000000;
+
+        const rawValue = materialCost + 500;
+        const ceilingValue = Math.ceil(rawValue / 200) * 200;
+        const unitPrice = Math.max(1000, ceilingValue);
+        const totalPrice = unitPrice * quantity;
+
+        // 네이버 주문 수량 계산 (100원 단위 1개)
+        currentOrderCount = Math.round(totalPrice / 100);
+
+        document.getElementById('result').innerText = totalPrice.toLocaleString();
+        document.getElementById('unitPriceText').innerText = `개당 단가: ${unitPrice.toLocaleString()}원`;
+        document.getElementById('orderGuideText').innerText = `네이버 주문 수량: ${currentOrderCount.toLocaleString()}개 지정`;
+
+        const topDesc = hasLid
+            ? `상판(${topMatEl.dataset.name}/${topCol})`
+            : `상판(없음)`;
+        document.getElementById('specSummary').innerHTML =
+            `<strong>선택 사양:</strong> ${width}×${depth}×${height}mm (${thickness}t) / ${hasLid ? '뚜껑 포함' : '뚜껑 없음'}<br>` +
+            `바닥(${bottomMatEl.dataset.name}/${bottomCol}) · 둘레(${sideMatEl.dataset.name}/${sideCol}) · ${topDesc}`;
+    }
+
+    // 이벤트 연결
+    document.addEventListener('DOMContentLoaded', () => {
+        // 치수 입력칸 이벤트
+        ['width', 'depth', 'height'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', calculate);
+            el.addEventListener('blur', calculate);
+            el.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    el.blur();
+                }
+            });
+        });
+
+        // 두께 입력칸 이벤트
+        const thicknessInput = document.getElementById('thickness');
+        thicknessInput.addEventListener('input', calculate);
+        thicknessInput.addEventListener('blur', calculate);
+
+        // 두께 프리셋 버튼 이벤트
+        document.querySelectorAll('.t-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (btn.id === 'customThicknessBtn') {
+                    thicknessInput.readOnly = false;
+                    thicknessInput.value = '';
+                    thicknessInput.focus();
+                } else {
+                    thicknessInput.value = btn.dataset.t;
+                    thicknessInput.readOnly = true;
+                }
+                calculate();
+            });
+        });
+
+        // 수량 입력칸 이벤트
+        const qtyInput = document.getElementById('quantity');
+        qtyInput.addEventListener('input', calculate);
+        qtyInput.addEventListener('blur', () => {
+            if (qtyInput.value === '' || parseInt(qtyInput.value, 10) < 1) {
+                qtyInput.value = 1;
+            }
+            calculate();
+        });
+
+        // 상단 뚜껑 여부 라디오 이벤트
+        document.querySelectorAll('input[name="hasLid"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const hasLid = document.querySelector('input[name="hasLid"]:checked').value === 'yes';
+                const lidBox = document.getElementById('lidPartBox');
+                const statusText = document.getElementById('lidStatusText');
+
+                if (hasLid) {
+                    lidBox.classList.remove('disabled');
+                    statusText.innerText = '가로 × 세로';
+                } else {
+                    lidBox.classList.add('disabled');
+                    statusText.innerText = '뚜껑 없음 (미포함)';
+                }
+                calculate();
+            });
+        });
+
+        // 재질 및 색상 라디오 이벤트
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            if (radio.name !== 'hasLid') {
+                radio.addEventListener('change', calculate);
+            }
+        });
+
+        // 수량 복사 버튼
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if (currentOrderCount <= 0) {
+                alert('먼저 올바른 치수(60~1,000mm)와 두께를 입력해 주세요!');
+                return;
+            }
+
+            navigator.clipboard.writeText(currentOrderCount.toString()).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = '복사완료! ✓';
+                btn.style.backgroundColor = '#111111';
+
+                setTimeout(() => {
+                    btn.innerText = '수량 복사하기';
+                    btn.style.backgroundColor = '#F2571B';
+                }, 2000);
+            }).catch(() => {
+                alert('복사에 실패했습니다. 수량을 직접 입력해 주세요.');
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
